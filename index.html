@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Holy Auto DHC Panel</title>
+  <style>
+    body {
+      background-color: rgb(20, 20, 20);
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      text-align: center;
+      flex-direction: column;
+      position: relative; /* Make sure snowflakes are positioned relative to the body */
+    }
+    .container {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 30px; /* Adds space between login and panel */
+      position: relative; /* Allow child elements like snowflakes to be positioned */
+      z-index: 1; /* Ensure login form is above snowflakes */
+    }
+    .label {
+      font-size: 36px;
+      font-weight: bold;
+      border: 2px solid red;
+      padding: 10px 20px;
+      margin-bottom: 30px; /* Adds space between label and password textbox */
+    }
+    .textbox {
+      padding: 10px;
+      border: 2px solid red;
+      background-color: black;
+      color: white;
+      font-size: 16px;
+      margin-bottom: 20px; /* Adds space between password textbox and submit button */
+      width: 250px; /* Sets a fixed width for uniformity */
+    }
+    .button {
+      padding: 10px 20px;
+      border: 2px solid red;
+      background-color: black;
+      color: white;
+      font-size: 16px;
+      width: 250px; /* Same width as textbox */
+    }
+    .panel {
+      text-align: center;
+      margin-top: 50px;
+      padding: 20px;
+      border: 2px solid red;
+      background-color: black;
+    }
+    .panel button {
+      margin: 10px 0; /* Ensures buttons are stacked vertically with space in between */
+      padding: 10px 20px;
+      border: 2px solid red;
+      background-color: black;
+      color: white;
+      font-size: 16px;
+      width: 250px; /* Same width as the textbox */
+      transition: border-color 0.3s ease;
+    }
+    .panel button:hover {
+      background-color: red;
+    }
+    .panel button.active {
+      border-color: green; /* Change border to green when active */
+    }
+    .page {
+      display: none;
+    }
+    .page.active {
+      display: block;
+    }
+    /* Snowflake effect */
+    .snowflake {
+      position: absolute;
+      top: -10px;
+      pointer-events: none;
+      z-index: 9999;
+      font-size: 16px;
+      color: white;
+      opacity: 0.8;
+      animation: snowfall 10s linear infinite;
+    }
+
+    /* Snowflake falling animation */
+    @keyframes snowfall {
+      0% {
+        transform: translateY(-10px);
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(100vh);
+        opacity: 0.5;
+      }
+    }
+    .webhook-section {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    .webhook-input {
+      margin-top: 10px;
+      padding: 10px;
+      border: 2px solid red;
+      background-color: black;
+      color: white;
+      font-size: 16px;
+      width: 250px;
+    }
+
+    .checkbox {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="page1" class="page active">
+    <div class="container">
+      <div class="label">HOLY AUTO DHC PANEL</div>
+      <input type="text" id="password" class="textbox" placeholder="Password">
+      <button onclick="checkPassword()" class="button">Submit</button>
+    </div>
+  </div>
+
+  <div id="page2" class="page">
+    <div class="panel">
+      <button onclick="sendRequest('/farmAlts', this)">Farm Alts</button>
+      <button onclick="sendRequest('/dropAlts', this)">Drop Alts</button>
+      <button onclick="sendRequest('/autoProof', this)">Auto Proof</button>
+
+      <div class="webhook-section">
+        <label>
+          <input type="checkbox" id="enableLogs" class="checkbox" onchange="toggleWebhookInput()"> Enable Logs
+        </label>
+        <input type="text" id="webhookURL" class="webhook-input" placeholder="Enter Webhook URL" style="display: none;">
+        <button onclick="saveConfig()" class="button">Save Config</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const validPasswords = [
+      "HOLY-DROPPER-VFiuwUC9jxu9D9E36TVYe986MFgyrlSj",
+      "HOLY-DROPPER-7QOMLKOd8iYAnaOHcBSrpvFuPK8Glrdf",
+      "HOLY-DROPPER-lnAq7lUHuZItMZvmL8GEphz03TlGu5al",
+      "HOLY-DROPPER-qpowskptQKNsXmtAxWhAOam8BxVRq2Pr"
+    ];
+
+    function checkPassword() {
+      const password = document.getElementById('password').value;
+      if (validPasswords.includes(password)) {
+        document.getElementById('page1').classList.remove('active');
+        document.getElementById('page2').classList.add('active');
+        alert("Password correct! Panel unlocked.");
+      } else {
+        alert("Incorrect password!");
+      }
+    }
+
+    function toggleWebhookInput() {
+      const enableLogs = document.getElementById('enableLogs').checked;
+      const webhookInput = document.getElementById('webhookURL');
+      webhookInput.style.display = enableLogs ? 'block' : 'none';
+    }
+
+    async function saveConfig() {
+      const enableLogs = document.getElementById('enableLogs').checked;
+      const webhookURL = document.getElementById('webhookURL').value;
+
+      try {
+        const response = await fetch('/setConfig', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ webhookURL, enableLogs }),
+        });
+
+        const data = await response.json();
+        alert(data.message);
+      } catch (error) {
+        console.error('Error saving config:', error);
+        alert('Failed to save configuration.');
+      }
+    }
+
+    async function sendRequest(endpoint, button) {
+      try {
+        button.classList.add('active');
+        const response = await fetch(endpoint, { method: 'POST' });
+        const data = await response.json();
+        alert(data.message);
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while processing your request.');
+      }
+    }
+    function createSnowflakes() {
+  for (let i = 0; i < 150; i++) {
+    let snowflake = document.createElement('div');
+    snowflake.classList.add('snowflake');
+    snowflake.style.left = `${Math.random() * 100}vw`;
+    snowflake.style.animationDuration = `${Math.random() * 3 + 3}s`;
+    snowflake.style.fontSize = `${Math.random() * 13 + 13}px`;
+    
+    // Set the snowflake's content to an image
+    snowflake.style.width = "50px";
+    snowflake.style.height = "50px";
+    snowflake.style.backgroundImage = "url('https://media.tenor.com/F7vx-vVATFcAAAAj/dahood-cash.gif')"; // Update path
+    snowflake.style.backgroundSize = "cover";
+
+    document.body.appendChild(snowflake);
+  }
+}
+
+createSnowflakes();
+
+  </script>
+</body>
+</html>
